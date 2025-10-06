@@ -41,6 +41,7 @@ const AnimatedBackground = () => {
 
 // Navbar Component
 const Navbar = () => {
+  const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -59,8 +60,6 @@ const Navbar = () => {
     }
   };
 
-
-const navigate = useNavigate();
   return (
     <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
       <div className="nav-container">
