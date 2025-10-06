@@ -1,0 +1,223 @@
+/* Profile.css - Modern Green & White Theme */
+
+.profile-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f0f9ff 0%, #ecfdf5 100%);
+  padding: 2rem;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.profile-container h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #059669, #10b981);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-align: center;
+  margin-bottom: 3rem;
+  letter-spacing: -0.025em;
+}
+
+.profile-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Profile Info Section */
+.profile-info {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  padding: 2.5rem;
+  box-shadow: 
+    0 20px 25px -5px rgba(16, 185, 129, 0.1),
+    0 10px 10px -5px rgba(16, 185, 129, 0.04);
+  border: 1px solid rgba(16, 185, 129, 0.1);
+  transition: all 0.3s ease;
+}
+
+.profile-info:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 25px 50px -12px rgba(16, 185, 129, 0.15),
+    0 0 0 1px rgba(16, 185, 129, 0.05);
+}
+
+.profile-avatar {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.profile-avatar svg {
+  filter: drop-shadow(0 4px 8px rgba(16, 185, 129, 0.2));
+  transition: all 0.3s ease;
+}
+
+.profile-avatar:hover svg {
+  transform: scale(1.05);
+  filter: drop-shadow(0 8px 16px rgba(16, 185, 129, 0.3));
+}
+
+.profile-info h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #064e3b;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  position: relative;
+}
+
+.profile-info h2::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(90deg, #10b981, #34d399);
+  border-radius: 2px;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+  border-bottom: 1px solid rgba(16, 185, 129, 0.1);
+  transition: all 0.2s ease;
+}
+
+.info-item:hover {
+  background: rgba(16, 185, 129, 0.05);
+  margin: 0 -1rem;
+  padding: 1rem;
+  border-radius: 12px;
+  border-bottom: 1px solid transparent;
+}
+
+.info-label {
+  font-weight: 500;
+  color: #065f46;
+  font-size: 0.95rem;
+}
+
+.info-item span:last-child {
+  font-weight: 400;
+  color: #047857;
+  font-size: 0.95rem;
+}
+
+/* Profile Details Section */
+.profile-details {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 2px solid rgba(16, 185, 129, 0.1);
+}
+
+.profile-details h2 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #064e3b;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.profile-details h2::before {
+  content: '⭐';
+  font-size: 1.2rem;
+}
+
+.info-value {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Star Rating */
+.info-value div {
+  display: flex;
+  gap: 2px;
+}
+
+/* Logout Button */
+.logout-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #dc2626, #ef4444);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 16px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 2rem;
+  box-shadow: 0 4px 14px 0 rgba(220, 38, 38, 0.3);
+}
+
+.logout-btn:hover {
+  background: linear-gradient(135deg, #b91c1c, #dc2626);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px 0 rgba(220, 38, 38, 0.4);
+}
+
+.logout-btn:active {
+  transform: translateY(0);
+}
+
+/* Score Section */
+.score-section {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Loading State */
+p {
+  color: #065f46;
+  font-size: 1.1rem;
+  text-align: center;
+  margin: 2rem 0;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .profile-content {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .profile-container {
+    padding: 1rem;
+  }
+  
+  .profile-container h1 {
+    font-size: 2rem;
+    margin-bottom: 2rem;
+  }
+  
+  .profile-info {
+    padding: 1.5rem;
+    border-radius: 16px;
+  }
+  
+  .info-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .info-label {
+    font-size: 0.9rem;
+  }
+}
