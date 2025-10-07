@@ -1,0 +1,149 @@
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+import User from './Models/user.model.js';
+import drivermodel from './Models/driver.model.js';
+import merchantmodel from './Models/merchant.model.js';
+import deliverymodel from './Models/deliver.model.js';
+import fetch from 'node-fetch';
+
+dotenv.config();
+
+// ---------------- MongoDB Connection ----------------
+const connectDB = async () => {
+    try {
+        await mongoose.connect(process.env.MONGO_URI, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+        });
+        console.log('MongoDB connected');
+    } catch (error) {
+        console.error('MongoDB connection error:', error);
+        process.exit(1);
+    }
+};
+
+// ---------------- List Users ----------------
+async function listUsers() {
+    try {
+        const users = await User.find({}, 'email username role');
+        // console.log('Available users:');
+        // console.log(users);
+        return users;
+    } catch (error) {
+        console.error('Error listing users:', error);
+        return [];
+    }
+}
+
+// ---------------- Test Level Score ----------------
+const testLevelScore = async () => {
+    try {
+        await connectDB();
+
+        // List available users
+        const users = await listUsers();
+        if (users.length === 0) {
+            throw new Error('No users in database');
+        }
+
+        const testUser = users[5]; // pick first user
+        console.log('Testing level score for user:', testUser.username);
+        console.log(testUser.role,testUser._id)
+        let testData=0 
+        if(testUser.role=='driver'){
+            console.log('searching in driver nihh')
+            testData=await drivermodel.findOne({userId:testUser._id})
+        }
+        if(testUser.role=='merchant'){
+            testData=await merchantmodel.findOne({userId:testUser._id})
+        }
+        if(testUser.role=='delivery'){
+            testData=await deliverymodel.findOne({userId:testUser._id})
+        }
+        console.log('test is ',testData)
+        const currentDate = new Date();
+
+        // ---------------- Prepare test payload ----------------
+        const testData = {
+            user_id: testUser._id.toString(),
+            role: testUser.role || 'merchant',  // fallback
+            features: {
+                // Merchant default features
+
+                login_rate: 0.9,
+                streak_days: 30,
+                sales_30d: 120,
+                order_fulfillment_rate: 0.78,
+                return_rate: 0.04,
+                rating: 0.7,
+                avg_order_value: 744,
+                peak_hour_sales: 16,
+                complaints_received: 19,
+                new_customers_acquired: 43,
+                repeat_customer_rate: 0.95,
+                total_hours_operated: 240,
+                first_time_account: false,
+
+                // Spam detection features
+                review_count: 50,
+                rating_variance: 0.1,
+                avg_review_length: 120,
+                logins_per_day: 1.2,
+                std_login_time: 0.3,
+                account_age_days: 300,
+
+                // --- Added to avoid KeyError ---
+                active: 1
+            },
+            activity_log: [
+                { event: 'login', timestamp: currentDate.toISOString(), active: true }
+            ],
+            history_scores: [88, 92, 100]  // previous months
+        };
+
+        // console.log('Sending test data:', JSON.stringify(testData, null, 2));
+
+        // ---------------- Call FastAPI ML service ----------------
+        const response = await fetch('http://localhost:5000/calculate-score', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(testData)
+        });
+        // console.log('Response is here homie ', response);
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('ML Service Error:', {
+                status: response.status,
+                statusText: response.statusText,
+                error: errorText
+            });
+            throw new Error(`ML Service request failed: ${response.status} ${response.statusText}`);
+        }
+
+        const result = await response.json();
+
+        if (result.status === 'success') {
+            console.log('✅ Level score calculated successfully:');
+            console.log('User ID:', result.user_id);
+            console.log('Final Score:', result.final_score);
+            console.log('Credit Score:', result.credit_score);
+            console.log('Spam Score:', result.spam_score);
+            console.log('Tier:', result.tier);
+            console.log('Reason Log:', result.reason_log);
+            console.log('Penalty:', result.penalty);
+            console.log('Consistency Bonus:', result.consistency_bonus);
+            console.log('Boost Applied:', result.boost);
+        } else {
+            console.error('❌ Failed to calculate level score:', result.message);
+        }
+
+    } catch (error) {
+        console.error('Error in test:', error);
+    } finally {
+        process.exit(0);
+    }
+};
+
+testLevelScore();

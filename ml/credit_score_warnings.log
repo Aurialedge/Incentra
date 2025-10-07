@@ -1,0 +1,4 @@
+2025-09-09 19:05:28,179 [ERROR] Critical error in compute_final_credit_score for user N/A: Invalid role 'None'
+2025-09-09 19:05:28,622 [ERROR] Critical error in compute_final_credit_score for user N/A: Invalid role 'None'
+2025-09-09 19:05:36,589 [ERROR] Critical error in compute_final_credit_score for user N/A: Invalid role 'None'
+2025-09-09 19:05:36,616 [ERROR] Critical error in compute_final_credit_score for user N/A: Invalid role 'None'

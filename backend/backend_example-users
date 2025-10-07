@@ -1,0 +1,13 @@
+user_profile = {
+    "features": {
+        "login_rate": 0.9,
+        "streak_days": 10,
+        "rides_30d": 120,
+        "on_time_rate": 0.95,
+        "cancellation_rate": 0.05,
+        "rating": 4.7
+    },
+    "first_time_account": False,
+    "worked_in_company_before": True,
+    "activity_log": [{"date": f"2025-09-{i+1:02d}", "active": i%3 != 0} for i in range(30)]
+}
