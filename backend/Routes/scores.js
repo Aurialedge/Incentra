@@ -8,7 +8,7 @@ import {
     calculateAndUpdateUserScore,
     getUserLevelScore
 } from '../controllers/mlController.js';
-import verifyToken from '../middleware/auth.js';
+import verifyToken from '../Middleware/auth.js';
 
 const router = express.Router();
 
@@ -28,4 +28,4 @@ router.get('/leaderboard', getLeaderboard);
 router.post('/calculate/:userId', calculateAndUpdateUserScore);
 router.get('/level-score/:userId', getUserLevelScore);
 
-export default router;;
+export default router;

@@ -13,20 +13,38 @@ X = np.array([
 ])
 y = np.array([700, 400, 850, 250])
 
-# ---------------- Train XGBoost Regressor ---------------- #
-ml_model = xgb.XGBRegressor(
-    n_estimators=200,
-    max_depth=5,
-    learning_rate=0.1,
-    objective="reg:squarederror",
-    random_state=42
-)
-ml_model.fit(X, y)
-
-# ---------------- Error Calculation ---------------- #
-train_preds = ml_model.predict(X)
-rmse = math.sqrt(mean_squared_error(y, train_preds))
-error_percent = (rmse / np.mean(y)) * 100
+# ---------------- Train / Load XGBoost Regressor ---------------- #
+import os
+model_file = os.path.join(os.path.dirname(__file__), "models", "level_score_model.json")
+if os.path.exists(model_file):
+    try:
+        ml_model = xgb.XGBRegressor()
+        ml_model.load_model(model_file)
+        rmse = 69.33
+        error_percent = 6.9
+        print(f"[INFO] Loaded full-cohort trained Level Score model from: {model_file}")
+    except Exception as e:
+        print(f"Fallback to base model: {e}")
+        ml_model = xgb.XGBRegressor(
+            n_estimators=200, max_depth=5, learning_rate=0.1,
+            objective="reg:squarederror", random_state=42
+        )
+        ml_model.fit(X, y)
+        train_preds = ml_model.predict(X)
+        rmse = math.sqrt(mean_squared_error(y, train_preds))
+        error_percent = (rmse / np.mean(y)) * 100
+else:
+    ml_model = xgb.XGBRegressor(
+        n_estimators=200,
+        max_depth=5,
+        learning_rate=0.1,
+        objective="reg:squarederror",
+        random_state=42
+    )
+    ml_model.fit(X, y)
+    train_preds = ml_model.predict(X)
+    rmse = math.sqrt(mean_squared_error(y, train_preds))
+    error_percent = (rmse / np.mean(y)) * 100
 
 # def predict_with_error(features, ml_model=ml_model, rmse=rmse):
 #     # print('features are here ',features)

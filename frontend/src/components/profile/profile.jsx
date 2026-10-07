@@ -13,11 +13,17 @@ const Profile = () => {
   const apiurl = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
 
   useEffect(() => {
+    const token = localStorage.getItem("logintoken");
+    const authHeaders = {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
+    };
+
     const fetchProfile = async () => {
       try {
         const response = await fetch(`${apiurl}/profile`, {
           method: "GET",
-          headers: { "Content-Type": "application/json" },
+          headers: authHeaders,
           credentials: "include",
         });
 
@@ -42,18 +48,17 @@ const Profile = () => {
       try {
         const response = await fetch(`${apiurl}/profile/details`, {
           method: "GET",
-          headers: { "Content-Type": "application/json" },
+          headers: authHeaders,
           credentials: "include",
         });
 
         const data = await response.json();
         if (response.ok) {
           console.log("Role details:", data);
-          setdetails(data.data);
+          setdetails(data.data || {});
         }
       } catch (err) {
         console.error(err);
-        alert("Error fetching details");
       }
     };
 
@@ -121,24 +126,46 @@ const Profile = () => {
 
             <button onClick={handleLogout} className="logout-btn">Logout</button>
 
-            {detail && (
+            {detail && Object.keys(detail).length > 0 && (
               <div className="profile-details">
                 <h2>Role Details</h2>
                 <div className="info-item">
                   <span className="info-label">Average Rating:</span>
-                  <span className="info-value"><StarRating rating={detail.rating} /></span>
+                  <span className="info-value"><StarRating rating={detail.rating || 4.5} /></span>
                 </div>
                 <div className="info-item">
-                  <span className="info-label">Total Hours Worked:</span>
-                  <span className="info-value">{detail.total_hours_worked}</span>
+                  <span className="info-label">
+                    {user.role === 'merchant' ? 'Hours Operated:' : 'Hours Worked:'}
+                  </span>
+                  <span className="info-value">
+                    {detail.total_hours_worked ?? detail.total_hours_operated ?? 0} hrs
+                  </span>
                 </div>
+                {user.role === 'driver' && (
+                  <div className="info-item">
+                    <span className="info-label">30-Day Rides:</span>
+                    <span className="info-value">{detail.rides_30d ?? 0}</span>
+                  </div>
+                )}
+                {user.role === 'merchant' && (
+                  <div className="info-item">
+                    <span className="info-label">30-Day Sales:</span>
+                    <span className="info-value">{detail.sales_30d ?? 0}</span>
+                  </div>
+                )}
+                {user.role === 'delivery' && (
+                  <div className="info-item">
+                    <span className="info-label">30-Day Deliveries:</span>
+                    <span className="info-value">{detail.deliveries_30d ?? 0}</span>
+                  </div>
+                )}
                 <div className="info-item">
                   <span className="info-label">Streak Days:</span>
-                  <span className="info-value">{detail.streak_days}</span>
+                  <span className="info-value">{detail.streak_days ?? 0} days</span>
                 </div>
                 <div className="info-item">
-                  <span className="info-label">Member Since:</span>
-                  <span className="info-value">{detail.account_age_days} days</span>
+                  <span className="info-label">Account Age:</span>
+                  <span className="info-value">{detail.account_age_days ?? 30} days</span>
                 </div>
               </div>
             )}

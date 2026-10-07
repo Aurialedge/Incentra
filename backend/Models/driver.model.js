@@ -37,6 +37,10 @@ const driverSchema = new mongoose.Schema({
   account_age_days: { type: Number, default: 0 }
 });
 
+// Compound indexes for high-throughput temporal and role querying
+driverSchema.index({ userId: 1, role: 1 });
+driverSchema.index({ "activity_log.timestamp": -1, "activity_log.active": 1 });
+
 // Middleware to update updated_at on save
 driverSchema.pre('save', function (next) {
   this.updated_at = Date.now();

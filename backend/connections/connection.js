@@ -22,8 +22,7 @@ const connect = async (mongoUrl, isRetry = false) => {
             maxPoolSize: 10, // Maintain up to 10 socket connections
             connectTimeoutMS: 30000, // Give up initial connection after 30 seconds
             heartbeatFrequencyMS: 10000, // Check connection every 10 seconds
-            retryWrites: true,
-            w: 'majority'
+            retryWrites: false
         };
         
         // Connect with options

@@ -29,27 +29,42 @@ logging.basicConfig(
 # customer_rating=rating 
 # issues=customer_complaints
 
+import os
+import json
+
 ROLE_WEIGHTS = {
     "driver": {
         "features": ["rides_completed", "avg_rating", "on_time_ratio", "complaints"],
-        "weights": [0.35, 0.30, 0.20, -0.15] # Complaints should negatively impact the score
+        "weights": [0.85, 0.25, 0.20, -0.15]
     },
     "merchant": {
         "features": ["transactions", "disputes", "fulfillment_rate", "revenue_growth"],
-        "weights": [0.40, -0.20, 0.25, 0.15] # Disputes negatively impact the score
+        "weights": [0.35, -0.15, 0.30, 0.25]
     },
     "delivery": {
         "features": ["deliveries_completed", "on_time_ratio", "customer_rating", "issues"],
-        "weights": [0.30, 0.25, 0.30, -0.15] # Issues negatively impact the score
+        "weights": [0.80, 0.20, 0.25, -0.15]
     }
-    
 }
 
-# Tier multipliers reward higher-tier partners, providing a loyalty incentive.
 TIER_MULTIPLIERS = {"Gold": 1.75, "Ruby": 1.50, "Amber": 1.25, "Bronze": 1.00}
-
-# Extra factors weights for additional behavioral metrics (e.g., Behavior, Loyalty, Demand)
 EXTRA_WEIGHTS = {"behavior_score": 0.2, "loyalty_score": 0.2, "demand_score": 0.2}
+
+# Load data-driven empirical weights if exported
+_weights_file = os.path.join(os.path.dirname(__file__), "updated_weights.json")
+if os.path.exists(_weights_file):
+    try:
+        with open(_weights_file, "r") as _f:
+            _loaded = json.load(_f)
+            if "ROLE_WEIGHTS" in _loaded:
+                ROLE_WEIGHTS = _loaded["ROLE_WEIGHTS"]
+            if "TIER_MULTIPLIERS" in _loaded:
+                TIER_MULTIPLIERS = _loaded["TIER_MULTIPLIERS"]
+            if "EXTRA_WEIGHTS" in _loaded:
+                EXTRA_WEIGHTS = _loaded["EXTRA_WEIGHTS"]
+            logging.info("Loaded data-driven weights from updated_weights.json")
+    except Exception as _e:
+        logging.warning(f"Could not load updated_weights.json: {_e}")
 
 # ---------------- Utility Functions ---------------- #
 
@@ -115,19 +130,21 @@ def compute_role_score(user_profile):
 def compute_global_score(user_profile, population_samples):
     """Compute the global percentile score by comparing a user against their peers."""
     try:
+        raw_score = compute_role_score(user_profile)
         if not population_samples or not isinstance(population_samples, list):
-            raise ValueError("Population samples must be a non-empty list")
+            return max(40, min(100, raw_score))
         
         role = user_profile.get("role")
-        raw_score = compute_role_score(user_profile)
         population_scores = [compute_role_score(p) for p in population_samples if p.get("role") == role]
+        if not population_scores:
+            return max(40, min(100, raw_score))
         
         rank = percentile_rank(raw_score, population_scores)
         # Scale rank to a score between 40 and 100
         return 40 + 60 * rank
     except Exception as e:
         logging.error(f"Error in compute_global_score for user {user_profile.get('id', 'N/A')}: {e}")
-        return 50
+        return 60.0
 
 def fairness_adjustment(global_score, accept_rate=0.6, target_accept=0.7, eta=0.1):
     """
@@ -158,12 +175,27 @@ def compute_final_credit_score(user_profile, population_samples,
         if tier not in TIER_MULTIPLIERS:
             raise ValueError(f"Invalid tier '{tier}'")
 
+        # Ensure features dictionary exists for level score computation
+        if "features" not in user_profile or not user_profile["features"]:
+            user_profile["features"] = {
+                "rides_30d": user_profile.get("rides_completed", 0),
+                "rating": user_profile.get("avg_rating", 0) or user_profile.get("customer_rating", 0) or 4.0,
+                "on_time_rate": user_profile.get("on_time_ratio", 0.9),
+                "customer_complaints": user_profile.get("complaints", 0) or user_profile.get("issues", 0),
+                "deliveries_30d": user_profile.get("deliveries_completed", 0),
+                "on_time_delivery_rate": user_profile.get("on_time_ratio", 0.9),
+                "sales_30d": user_profile.get("transactions", 0),
+                "complaints_received": user_profile.get("disputes", 0),
+                "order_fulfillment_rate": user_profile.get("fulfillment_rate", 0.9),
+                "streak_days": int(user_profile.get("loyalty_score", 0.5) * 60)
+            }
+
         # --- 1. Role Component (Individual Performance) ---
         level_result = compute_level_score_backend(
-        user_profile,
-        population_samples={"R_raw_values": []},  # pass real samples if available
-        month_active=user_profile.get("month_active", 1),
-        history_scores=user_profile.get("history_scores", [])
+            user_profile,
+            population_samples={"R_raw_values": []},
+            month_active=user_profile.get("month_active", 1),
+            history_scores=user_profile.get("history_scores", [])
         )
 
         role_score = level_result["final_score"]

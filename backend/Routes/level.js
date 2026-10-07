@@ -4,14 +4,14 @@ import User from "../Models/user.model.js";
 import drivermodel from "../Models/driver.model.js";
 import merchantmodel from "../Models/merchant.model.js";
 import deliverymodel from "../Models/deliver.model.js";
-import verifyToken  from "../middleware/auth.js"; // your JWT middleware
+import verifyToken from "../Middleware/auth.js"; // your JWT middleware
 
 const router = express.Router();
 
 // GET user score
 router.get("/", verifyToken, async (req, res) => {
   try {
-    const userId = req.user.id; // comes from JWT
+    const userId = req.user._id || req.user.id; // comes from JWT
     const user = await User.findById(userId);
 
     if (!user) {
@@ -43,8 +43,9 @@ router.get("/", verifyToken, async (req, res) => {
       history_scores: details.history_scores || [],
     };
 
+    const mlUrl = process.env.ML_SERVICE_URL || process.env.API_URL_PY || "http://localhost:5000";
     // ⚡ Call FastAPI
-    const response = await fetch("http://localhost:5000/calculate-score", {
+    const response = await fetch(`${mlUrl}/calculate-score`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(testData),

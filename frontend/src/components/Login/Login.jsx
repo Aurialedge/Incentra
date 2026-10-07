@@ -6,10 +6,11 @@ const Login = () => {
   const tokenlog=localStorage.getItem("logintoken") 
   
   const navigate = useNavigate();
-  const [isLogin, setIsLogin] = useState(true);
-  if (tokenlog){
-    navigate("/profile")
-  }
+  useEffect(() => {
+    if (tokenlog) {
+      navigate("/profile");
+    }
+  }, [tokenlog, navigate]);
   // common states
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");

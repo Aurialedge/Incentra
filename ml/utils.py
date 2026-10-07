@@ -2,21 +2,38 @@ import math
 import numpy as np
 
 ROLE_TIERS = {
-    "driver":[250,500,750],
-    "merchant":[200,450,700],
-    "delivery_partner":[220,480,740]
+    "driver": [250, 500, 750],
+    "merchant": [200, 450, 700],
+    "delivery": [220, 480, 740],
+    "delivery_partner": [220, 480, 740]
 }
+
+import os
+import json
 
 ROLE_FEATURE_WEIGHTS = {
-    "driver":[1.0,0.8,1.0,1.0,1.0,0.9,0.8,0.7,1.0,0.9,0.8,0.6],
-    "merchant":[1.0,0.8,1.0,1.0,0.9,0.9,0.8,0.7,1.0,0.9,0.8,0.6],
-    "delivery_partner":[1.0,0.8,1.0,1.0,0.9,0.9,0.8,0.7,1.0,0.9,0.8,0.6]
+    "driver": [1.0, 0.85, 1.0, 0.95, 0.90, 0.95, 0.75, 0.70, 0.85, 0.90, 0.75, 0.65],
+    "merchant": [1.0, 0.85, 1.0, 0.95, 0.85, 0.95, 0.80, 0.70, 0.90, 0.85, 0.80, 0.65],
+    "delivery": [1.0, 0.85, 1.0, 0.95, 0.85, 0.95, 0.75, 0.70, 0.85, 0.90, 0.75, 0.65],
+    "delivery_partner": [1.0, 0.85, 1.0, 0.95, 0.85, 0.95, 0.75, 0.70, 0.85, 0.90, 0.75, 0.65]
 }
 
+# Dynamically load calibrated weights if available
+_weights_file = os.path.join(os.path.dirname(__file__), "updated_weights.json")
+if os.path.exists(_weights_file):
+    try:
+        with open(_weights_file, "r") as _f:
+            _loaded = json.load(_f)
+            if "ROLE_FEATURE_WEIGHTS" in _loaded:
+                ROLE_FEATURE_WEIGHTS = _loaded["ROLE_FEATURE_WEIGHTS"]
+    except Exception:
+        pass
+
 ROLE_BOOSTS = {
-    "driver":{"first_time":40,"milestone_rides":10},
-    "merchant":{"first_time":30,"high_sales":10},
-    "delivery_partner":{"first_time":40,"milestone_deliveries":10}
+    "driver": {"first_time": 40, "milestone_rides": 10},
+    "merchant": {"first_time": 30, "high_sales": 10},
+    "delivery": {"first_time": 40, "milestone_deliveries": 10},
+    "delivery_partner": {"first_time": 40, "milestone_deliveries": 10}
 }
 
 def percentile_rank(value, population):

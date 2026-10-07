@@ -103,14 +103,14 @@ def compute_level_score_backend(user_profile, population_samples, month_active, 
     boost = get_boost_for_user(user_profile.get("user_id", 0))
     print('here got the boost',boost)
     if month_active == 1 and user_profile.get("first_time_account", True):
-        boost += ROLE_BOOSTS[role]["first_time"]
+        boost += ROLE_BOOSTS.get(role, {}).get("first_time", 30)
     if role == "driver" and features.get("rides_30d", 0) > 100:
-        boost += ROLE_BOOSTS[role]["milestone_rides"]
+        boost += ROLE_BOOSTS.get(role, {}).get("milestone_rides", 10)
     elif role == "merchant" and features.get("sales_30d", 0) > 100:
-        boost += ROLE_BOOSTS[role]["high_sales"]
-    elif role == "delivery_partner" and features.get("deliveries_30d", 0) > 100:
-        boost += ROLE_BOOSTS[role]["milestone_deliveries"]
-    print('here got the boost',boost)
+        boost += ROLE_BOOSTS.get(role, {}).get("high_sales", 10)
+    elif role in ("delivery", "delivery_partner") and features.get("deliveries_30d", 0) > 100:
+        boost += ROLE_BOOSTS.get(role, {}).get("milestone_deliveries", 10)
+    print('here got the boost', boost)
 
     # ---------------- Spam Detection ----------------
     # Ensure all required columns exist

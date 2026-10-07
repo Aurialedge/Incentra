@@ -9,15 +9,20 @@ from initial_boosts import get_boost_for_user
 from final_credit_score import compute_final_credit_score
 import numpy as np 
 def to_serializable(obj):
-    if isinstance(obj, (np.int32, np.int64)):
+    if isinstance(obj, (np.integer, int)):
         return int(obj)
-    if isinstance(obj, (np.float32, np.float64)):
+    if isinstance(obj, (np.floating, float)):
         return float(obj)
+    if isinstance(obj, (np.bool_, bool)):
+        return bool(obj)
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
     if isinstance(obj, dict):
         return {k: to_serializable(v) for k, v in obj.items()}
     if isinstance(obj, list):
         return [to_serializable(v) for v in obj]
     return obj
+
 app = FastAPI(title="Grab ML Service")
 
 app.add_middleware(
@@ -38,11 +43,11 @@ class UserFeatures(BaseModel):
 class BoostRequest(BaseModel):
     user_id: str
     engagement_metrics: Dict[str, float]
-app = FastAPI()
 
 class credit_score(BaseModel):
     user_profile: Dict[str, Any]
-    population_samples: List[Dict[str, Any]]
+    population_samples: List[Dict[str, Any]] = []
+
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
@@ -50,7 +55,7 @@ async def health_check():
 @app.post("/calculate-score")
 async def calculate_score(user_data: UserFeatures):
     try:
-        print(user_data)
+        print("calculate_score payload:", user_data)
         score_dict = compute_level_score_backend(
             user_profile={
                 "user_id": user_data.user_id,
@@ -63,23 +68,23 @@ async def calculate_score(user_data: UserFeatures):
             history_scores=user_data.history_scores
         )
 
-        # final_score, credit_score = apply_spam_penalty(
-        #     final_score=float(score_dict["final_score"]),
-        #     credit_score=float(score_dict["final_score"]) * 0.9,
-        #     hybrid_score=float(score_dict["spam_score"]),
-        # )
-        # print('final_score',final_score)
-        # score_dict.update({
-        #     "user_id": user_data.user_id,
-        #     "final_score1": final_score,
-        #     "credit_score": credit_score,
-        #     "status": "success"
-        # })
+        final_score, credit_score_val = apply_spam_penalty(
+            final_score=float(score_dict.get("final_score", 0)),
+            credit_score=float(score_dict.get("final_score", 0)) * 0.9,
+            hybrid_score=float(score_dict.get("spam_score", 0)),
+        )
 
-        # # 🔥 sanitize before returning
+        score_dict.update({
+            "user_id": user_data.user_id,
+            "final_score": round(final_score, 2),
+            "credit_score": round(credit_score_val, 2),
+            "status": "success"
+        })
+
         return to_serializable(score_dict)
 
     except Exception as e:
+        print("Error in calculate-score:", str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/get-credit-score")

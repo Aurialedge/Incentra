@@ -57,12 +57,10 @@ const userSchema = new mongoose.Schema({
     loginstreak: { type: Array, default: [] },
 }, { timestamps: true });
 
-// Indexes for faster queries
-userSchema.index({ email: 1 }, { unique: true });
-userSchema.index({ username: 1 }, { unique: true });
+// Compound and single-field indexes for high-throughput queries
+userSchema.index({ role: 1, 'mlScores.levelScore': -1 });
 userSchema.index({ 'mlScores.tier': 1 });
 userSchema.index({ 'mlScores.levelScore': -1 });
-userSchema.index({ role: 1, 'mlScores.levelScore': -1 });
 
 // Pre-save hook to update derived fields
 userSchema.pre('save', function(next) {

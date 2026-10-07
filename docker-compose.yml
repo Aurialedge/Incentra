@@ -1,0 +1,58 @@
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: incentra-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - incentra-network
+
+  ml-service:
+    build:
+      context: ./ml
+      dockerfile: Dockerfile
+    container_name: incentra-ml
+    ports:
+      - "5000:5000"
+    environment:
+      - PYTHONUNBUFFERED=1
+    networks:
+      - incentra-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: incentra-backend
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - MONGO_URI=mongodb://mongodb:27017/grab
+      - ML_SERVICE_URL=http://ml-service:5000
+    depends_on:
+      - mongodb
+      - ml-service
+    networks:
+      - incentra-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: incentra-frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    networks:
+      - incentra-network
+
+volumes:
+  mongo-data:
+
+networks:
+  incentra-network:
+    driver: bridge

@@ -218,22 +218,26 @@ const ScoreCard = ({ userId }) => {
   }, [userId]);
 
 const [creditscoredata,setCreditscoredata]=useState(0);
-  const creditscore=async()=>{
-    const apiurl=import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
-    const token=localStorage.getItem("logintoken");
-    const response=await axios.get(`${apiurl}/creditscore`, {
-      headers: { Authorization: `Bearer ${token}` },
-      withCredentials: true,
-    });
-    const data = response.data;
-    setCreditscoredata(data.data.final_score);
-    console.log(data)
-    console.log('credit score',data.data.final_score);
-    return data;
-  }
-  useEffect(()=>{
+  const creditscore = async () => {
+    try {
+      const apiurl = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
+      const token = localStorage.getItem("logintoken");
+      if (!token) return;
+      const response = await axios.get(`${apiurl}/creditscore`, {
+        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true,
+      });
+      const data = response.data;
+      if (data?.data?.final_score !== undefined) {
+        setCreditscoredata(data.data.final_score);
+      }
+    } catch (err) {
+      console.warn("Credit score fetch warning:", err?.response?.data?.message || err.message);
+    }
+  };
+  useEffect(() => {
     creditscore();
-  },[])
+  }, []);
   const formatDate = (dateString) =>
     dateString
       ? new Date(dateString).toLocaleDateString("en-US", {

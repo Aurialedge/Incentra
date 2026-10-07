@@ -1,0 +1,23 @@
+# Virtual Environments
+.venv/
+venv/
+env/
+ENV/
+
+# Python Cache & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.ipynb_checkpoints/
+.pytest_cache/
+
+# Logs
+*.log
+credit_score_warnings.log
+
+# Environment & Secrets
+.env
+.env.*
+*.env
+*.env.*
+!.env.example
